@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réservation évènement</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --secondary-color: #6a1b9a;
+            --accent-color: #ff4081;
+            --background-light: #f3e5f5;
+            --text-color: #333;
+            --success-color: #3c763d;
+            --loading-color: #ffca28;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-color);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        /* Formulaire contenant plusieurs étapes */
+        .form-container {
+            width: 90%;
+            max-width: 500px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+
+        .form-slide {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .form-step {
+            min-width: 100%;
+            padding: 20px;
+        }
+
+        .form-step h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px; /* Prevents zoom on mobile */
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 10px 20px;
+            color: white;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-back {
+            background-color: var(--accent-color);
+            margin-right: 10px;
+            width: calc(50% - 5px);
+        }
+
+        .btn-back:hover {
+            background-color: #ff6387;
+        }
+
+        /* Animation de chargement */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Succès */
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #dff0d8;
+            color: var(--success-color);
+            border: 1px solid #d6e9c6;
+            border-radius: 5px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        /* Media Queries pour la responsivité */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-step h2 {
+                font-size: 1.3rem;
+            }
+
+            .btn-back, .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .form-group input,
+            .form-group select {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Réservez votre ...</h1>
+    </header>
+
+    <div class="form-container">
+        <div class="form-slide" id="formSlide">
+            <!-- Étape 1 : Choix de l'événement -->
+            <div class="form-step" id="step1">
+                <h2>Choisissez votre événement</h2>
+                <form id="step1Form">
+                    <div class="form-group">
+                        <label for="event">Événement</label>
+                        <select id="event" required>
+                            <option value="">Choisissez un événement</option>
+                            <option>Festival Musical</option>
+                            <option>Conférence Tech</option>
+                            <option>Atelier Créatif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <button type="button" class="btn" id="toStep2">Étape suivante</button>
+                </form>
+            </div>
+
+            <!-- Étape 2 : Coordonnées bancaires -->
+            <div class="form-step" id="step2">
+                <h2>Saisissez vos informations bancaires</h2>
+                <form id="step2Form">
+                    <div class="form-group">
+                        <label for="cardNumber">Numéro de carte</label>
+                        <input type="text" id="cardNumber" placeholder="1234 5678 9101 1121" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardName">Nom sur la carte</label>
+                        <input type="text" id="cardName" placeholder="Votre nom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expiry">Date d'expiration</label>
+                        <input type="month" id="expiry" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cvv">CVV</label>
+                        <input type="text" id="cvv" placeholder="123" required>
+                    </div>
+                    <button type="button" class="btn-back" id="toStep1">Retour</button>
+                    <button type="button" class="btn" id="confirmReservation">Confirmer le paiement et la réservation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spinner de chargement -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Message de succès -->
+    <div class="success-message" id="successMessage">Réservation réussie ! Merci.</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const formSlide = document.getElementById('formSlide');
+            const btnToStep2 = document.getElementById('toStep2');
+            const btnToStep1 = document.getElementById('toStep1');
+            const btnConfirmReservation = document.getElementById('confirmReservation');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const successMessage = document.getElementById('successMessage');
+
+            let currentStep = 0;
+
+            // Aller à l'étape suivante
+            const nextStep = () => {
+                // Validation du premier formulaire avant de passer à l'étape suivante
+                const step1Form = document.getElementById('step1Form');
+                if (step1Form.checkValidity()) {
+                    currentStep++;
+                    formSlide.style.transform = `translateX(-${currentStep * 100}%)`;
+                } else {
+                    step1Form.reportValidity();
+                }
+            };
+
+            // Retourner à l'étape précédente
+            const prevStep = () => {
+                currentStep--;
+                formSlide.style.transform = `translateX(-${currentStep * 100}%)`;
+            };
+
+            // Gestion des étapes
+            btnToStep2.addEventListener('click', nextStep);
+            btnToStep1.addEventListener('click', prevStep);
+
+            // Bouton "Confirmer le paiement et la réservation"
+            btnConfirmReservation.addEventListener('click', () => {
+                // Validation du formulaire bancaire
+                const step2Form = document.getElementById('step2Form');
+                if (step2Form.checkValidity()) {
+                    // Affiche le spinner
+                    loadingOverlay.style.display = 'flex';
+
+                    // Simule le temps de traitement
+                    setTimeout(() => {
+                        // Cache le spinner et affiche "Succès"
+                        loadingOverlay.style.display = 'none';
+                        successMessage.style.display = 'block';
+
+                        // Cache "Succès" après 3 secondes
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                    }, 2000);
+                } else {
+                    step2Form.reportValidity();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
